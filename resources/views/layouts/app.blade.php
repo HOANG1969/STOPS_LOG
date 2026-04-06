@@ -31,7 +31,7 @@
                     <i class="fas fa-boxes mr-2"></i>
                     PVGAS LOGISTICS
                 </h2>
-                <p class="text-sm text-blue-100 mt-1">Quản lý STOPs</p>
+                <!-- <p class="text-sm text-blue-100 mt-1">Quản lý STOPs</p> -->
             </div>
             
             <!-- Navigation -->
