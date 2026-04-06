@@ -1,9 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Quản lý STOP')
+@section('title', 'Quản lý STOPs')
 
 @push('styles')
 <style>
+    
     .stop-page-header {
         margin-top: 20px;
         gap: 0.75rem;

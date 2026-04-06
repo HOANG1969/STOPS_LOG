@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <link rel="icon" type="image/png" href="<?php echo e(asset('images/logopvgas.png')); ?>?v=3">
+    <link rel="shortcut icon" type="image/png" href="<?php echo e(asset('images/logopvgas.png')); ?>?v=3">
     <title><?php echo $__env->yieldContent('title', 'Office Supplies Management'); ?></title>
     
     <!-- Tailwind CSS -->
@@ -29,7 +31,7 @@
                     <i class="fas fa-boxes mr-2"></i>
                     PVGAS LOGISTICS
                 </h2>
-                <!-- <p class="text-sm text-blue-200 mt-1">Quản lý văn phòng phẩm</p> -->
+                <p class="text-sm text-blue-100 mt-1">Quản lý STOPs</p>
             </div>
             
             <!-- Navigation -->

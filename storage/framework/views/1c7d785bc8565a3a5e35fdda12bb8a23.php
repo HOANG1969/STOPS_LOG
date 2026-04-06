@@ -1,9 +1,10 @@
 
 
-<?php $__env->startSection('title', 'Quản lý STOP'); ?>
+<?php $__env->startSection('title', 'Quản lý STOPs'); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
+    
     .stop-page-header {
         margin-top: 20px;
         gap: 0.75rem;
