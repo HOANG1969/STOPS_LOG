@@ -1,0 +1,166 @@
+KDNVPP DEPLOY COMMANDS - FULL GUIDE (GITHUB -> RAILWAY PUBLIC)
+Updated: 2026-04-06
+
+NOTE:
+- This guide assumes you already have a GitHub account.
+- Run commands in CMD/PowerShell from project folder: D:\KDNVPP-new\KDNVPP-new
+- Do not push local .env to GitHub.
+
+========================================
+0) ONE-TIME PREPARE ON LOCAL MACHINE
+========================================
+Install/check Git:
+git --version
+
+Set Git identity (one-time):
+git config --global user.name "YOUR_GITHUB_NAME"
+git config --global user.email "YOUR_GITHUB_EMAIL"
+
+Go to project folder:
+cd /d D:\KDNVPP-new\KDNVPP-new
+
+========================================
+1) CREATE/CONNECT GITHUB REPOSITORY
+========================================
+If repository is already connected, skip to section 2.
+
+Initialize and first commit:
+git init
+git add .
+git commit -m "Initial source"
+
+Set main branch and connect remote:
+git branch -M main
+git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
+
+First push:
+git push -u origin main
+
+========================================
+2) DEPLOY TO RAILWAY (FIRST TIME)
+========================================
+Railway UI steps:
+1. New Project -> GitHub Repository -> choose your repo.
+2. Add MySQL service.
+3. In app service, set variables (see section 5).
+4. Deploy/redeploy.
+5. Generate Public Domain in Networking (target port 8080).
+
+========================================
+3) PUSH SOURCE CODE UPDATE (DAILY WORKFLOW)
+========================================
+cd /d D:\KDNVPP-new\KDNVPP-new
+git status
+git add .
+git commit -m "update source"
+git push origin main
+
+Railway behavior:
+- Auto Deploy ON: deploy starts automatically.
+- Auto Deploy OFF: Railway -> STOPS_LOG -> Deployments -> Redeploy latest.
+
+========================================
+4) FORCE REDEPLOY WHEN NEEDED (EMPTY COMMIT)
+========================================
+Use only when Railway does not pick up latest changes.
+
+cd /d D:\KDNVPP-new\KDNVPP-new
+git commit --allow-empty -m "force redeploy"
+git push origin main
+
+========================================
+5) RAILWAY PRODUCTION VARIABLES (REQUIRED)
+========================================
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.up.railway.app
+APP_KEY=base64:...
+
+DB_CONNECTION=mysql
+DB_HOST=...
+DB_PORT=...
+DB_DATABASE=...
+DB_USERNAME=...
+DB_PASSWORD=...
+
+Recommended:
+LOG_CHANNEL=stack
+LOG_LEVEL=error
+SESSION_DRIVER=cookie
+
+========================================
+6) EXPORT LOCAL DATABASE (MYSQL/XAMPP)
+========================================
+Create UTF-8 SQL dump (recommended):
+"C:\xampp\mysql\bin\mysqldump.exe" -u root --no-tablespaces --default-character-set=utf8mb4 kdnvpp --result-file="D:\KDNVPP-new\KDNVPP-new\database\kdnvpp_export_utf8.sql"
+
+========================================
+7) IMPORT DATABASE TO RAILWAY MYSQL (MYSQLSH)
+========================================
+Replace host/port/schema/user if your Railway values change.
+
+Import SQL file:
+mysqlsh --sql --user root --host junction.proxy.rlwy.net --port 22998 --schema railway --password --file "D:\KDNVPP-new\KDNVPP-new\database\kdnvpp_export_utf8.sql"
+
+Verify tables:
+mysqlsh --sql --user root --host junction.proxy.rlwy.net --port 22998 --schema railway --password -e "SHOW TABLES;"
+
+Verify users count:
+mysqlsh --sql --user root --host junction.proxy.rlwy.net --port 22998 --schema railway --password -e "SELECT COUNT(*) AS total_users FROM users;"
+
+After import:
+- Railway -> STOPS_LOG -> Deployments -> Redeploy latest
+- Test login again
+
+========================================
+8) IF PUSH IS REJECTED (REMOTE AHEAD)
+========================================
+cd /d D:\KDNVPP-new\KDNVPP-new
+git pull origin main --rebase
+git push origin main
+
+========================================
+9) LOCAL RUN (DOES NOT AFFECT RAILWAY)
+========================================
+cd /d D:\KDNVPP-new\KDNVPP-new
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan serve
+
+Local URL example:
+http://127.0.0.1:8000/login
+or
+http://logstop.local/login
+
+========================================
+10) COMMON QUICK CHECKS
+========================================
+Check latest commits:
+git log --oneline -5
+
+Check branch status:
+git status -sb
+
+Check remote URL:
+git remote -v
+
+Check Railway live page from terminal:
+Invoke-WebRequest https://logstop.up.railway.app/login -UseBasicParsing -TimeoutSec 20
+
+========================================
+11) TROUBLESHOOT FAST
+========================================
+Case A: Railway deploy success but old UI still shows
+- Hard refresh Ctrl+F5
+- Open private window
+- Force redeploy with empty commit (section 4)
+
+Case B: Login error "table users doesn't exist"
+- Import DB (section 7)
+
+Case C: APP_KEY missing
+- Set APP_KEY in Railway Variables
+- Redeploy
+
+END
