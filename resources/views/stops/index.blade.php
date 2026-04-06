@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Quản lý STOPs')
+@section('title', 'Quản lý STOP')
 
 @push('styles')
 <style>
