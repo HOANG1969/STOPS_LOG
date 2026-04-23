@@ -20,7 +20,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #9ff5a5 100%);
+            /* background: linear-gradient(135deg, #f5f7fa 0%, #9ff5a5 100%); */
+            background-image: url('{{ asset('images/background.jpg') }}');
+            background-size: cover;
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
