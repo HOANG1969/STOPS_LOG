@@ -86,7 +86,7 @@
                 <!-- <i class="fas fa-boxes fa-2x text-primary mb-3"></i> -->
                 <image src="<?php echo e(asset('images/logopvgas2025.jpg')); ?>" alt="PVGAS Logo" style="height: 100px; margin-bottom: 10px;">
                 <h1>PVGAS LOGISTICS</h1>
-                <p>Đăng nhập vào hệ thống quản lý văn phòng phẩm</p>
+                <p>Đăng nhập vào hệ thống quản lý</p>
             </div>
 
                     <?php if($errors->any()): ?>

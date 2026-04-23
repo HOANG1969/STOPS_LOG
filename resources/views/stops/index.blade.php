@@ -111,11 +111,11 @@
     color: white;
     border-bottom: 1px solid #e3e6f0;
     }
-    .card-header{
+    /* .card-header{
     background: linear-gradient(135deg, #9ba19a 0%, #ecebee 100%);
     color: white;
     border-bottom: 1px solid #e3e6f0;
-    }
+    } */
 </style>
 @endpush
 
