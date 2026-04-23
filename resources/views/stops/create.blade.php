@@ -182,20 +182,11 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="status" class="form-label">
-                                    Trạng thái <span class="text-danger">*</span>
+                                <label class="form-label">
+                                    Trạng thái
                                 </label>
-                                <select class="form-select @error('status') is-invalid @enderror" 
-                                        id="status" 
-                                        name="status" 
-                                        required>
-                                    <option value="open" {{ old('status') == 'open' ? 'selected' : '' }}>Chưa xử lý</option>
-                                    <option value="in-progress" {{ old('status') == 'in-progress' ? 'selected' : '' }}>Đang xử lý</option>
-                                    <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
-                                </select>
-                                @error('status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <input type="text" class="form-control" value="Chưa xử lý" readonly>
+                                <small class="text-muted">Trạng thái được hệ thống đặt mặc định khi tạo mới.</small>
                             </div>
 
                             <div class="col-md-6">
@@ -206,8 +197,9 @@
                                        class="form-control @error('completion_date') is-invalid @enderror" 
                                        id="completion_date" 
                                        name="completion_date" 
-                                       value="{{ old('completion_date') }}">
-                                <small class="text-muted">Chỉ cần nhập nếu trạng thái là "Hoàn thành"</small>
+                                        value="{{ old('completion_date') }}"
+                                        disabled>
+                                    <small class="text-muted">Sẽ được cập nhật khi thẻ STOP chuyển sang "Hoàn thành".</small>
                                 @error('completion_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -270,18 +262,10 @@
 
 @push('scripts')
 <script>
-// Auto enable/disable completion date based on status
-document.getElementById('status').addEventListener('change', function() {
-    const completionDate = document.getElementById('completion_date');
-    if (this.value === 'completed') {
-        completionDate.removeAttribute('disabled');
-        if (!completionDate.value) {
-            completionDate.value = new Date().toISOString().split('T')[0];
-        }
-    } else {
-        completionDate.value = '';
-    }
-});
+const completionDate = document.getElementById('completion_date');
+if (completionDate) {
+    completionDate.value = '';
+}
 </script>
 @endpush
 @endsection

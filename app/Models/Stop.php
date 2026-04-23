@@ -103,6 +103,67 @@ class Stop extends Model
     }
 
     /**
+     * Check if STOP can be edited by its creator within a time window.
+     */
+    public function canBeEditedByCreator(?int $userId, int $minutes = 30): bool
+    {
+        if (!$userId || (int) $this->user_id !== (int) $userId) {
+            return false;
+        }
+
+        if ($this->isCompleted() || !$this->created_at) {
+            return false;
+        }
+
+        return now()->lessThanOrEqualTo($this->created_at->copy()->addMinutes($minutes));
+    }
+
+    /**
+     * Get the time limit for creator edits.
+     */
+    public function getCreatorEditDeadline(int $minutes = 30)
+    {
+        if (!$this->created_at) {
+            return null;
+        }
+
+        return $this->created_at->copy()->addMinutes($minutes);
+    }
+
+    /**
+     * STOP is locked once both shift leader and safety officer have scored.
+     */
+    public function isLockedAfterDualScoring(): bool
+    {
+        $attributes = $this->getAttributes();
+
+        if (!array_key_exists('shift_leader_priority_level', $attributes) || !array_key_exists('safety_officer_priority_level', $attributes)) {
+            return false;
+        }
+
+        return $this->shift_leader_priority_level !== null && $this->safety_officer_priority_level !== null;
+    }
+
+    /**
+     * Check if STOP has been scored by either shift leader or safety officer.
+     */
+    public function isScoredByShiftLeaderOrSafetyOfficer(): bool
+    {
+        $attributes = $this->getAttributes();
+
+        if (array_key_exists('shift_leader_priority_level', $attributes) && $this->shift_leader_priority_level !== null) {
+            return true;
+        }
+
+        if (array_key_exists('safety_officer_priority_level', $attributes) && $this->safety_officer_priority_level !== null) {
+            return true;
+        }
+
+        // Legacy fallback: score exists in common columns.
+        return $this->priority_level !== null && $this->priority_scored_by !== null;
+    }
+
+    /**
      * Get status badge color
      */
     public function getStatusBadgeClass(): string

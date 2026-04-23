@@ -118,12 +118,13 @@ class StopController extends Controller
             'equipment_name' => 'nullable|string|max:255',
             'issue_description' => 'required|string',
             'corrective_action' => 'required|string',
-            'status' => 'required|in:open,in-progress,completed',
             'completion_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
         $validated['user_id'] = Auth::id();
+        $validated['status'] = 'open';
+        $validated['completion_date'] = null;
         
         // Nhân viên tạo mới thì mức độ để NULL (Chưa chấm)
         $validated['priority_level'] = null;
@@ -173,6 +174,11 @@ class StopController extends Controller
      */
     public function edit(Stop $stop)
     {
+        $editRestrictionMessage = $this->resolveEditRestrictionMessage($stop, Auth::user());
+        if ($editRestrictionMessage !== null) {
+            return redirect()->route('stops.index')->with('error', $editRestrictionMessage);
+        }
+
         $relations = ['user', 'scorer'];
 
         if (Schema::hasColumn('stops', 'shift_leader_scored_by')) {
@@ -198,9 +204,9 @@ class StopController extends Controller
      */
     public function update(Request $request, Stop $stop, StopNotificationService $stopNotificationService)
     {
-        // Ngăn chỉnh sửa STOP đã hoàn thành
-        if ($stop->status === 'completed') {
-            return redirect()->route('stops.index')->with('error', 'STOP đã hoàn thành, không thể chỉnh sửa!');
+        $editRestrictionMessage = $this->resolveEditRestrictionMessage($stop, Auth::user());
+        if ($editRestrictionMessage !== null) {
+            return redirect()->route('stops.index')->with('error', $editRestrictionMessage);
         }
 
         $validated = $request->validate([
@@ -215,22 +221,24 @@ class StopController extends Controller
             'equipment_name' => 'nullable|string|max:255',
             'issue_description' => 'required|string',
             'corrective_action' => 'required|string',
-            'status' => 'required|in:open,in-progress,completed',
             'completion_date' => 'nullable|date',
             'notes' => 'nullable|string',
         ]);
 
         $user = Auth::user();
+        $canScoreStop = $this->isScoringActor($user);
+
+        // Người dùng thường chỉ được sửa nội dung, không được thay đổi mức độ chấm điểm.
+        if (!$canScoreStop) {
+            $validated['priority_level'] = $stop->priority_level;
+            $validated['score_note'] = null;
+        }
+
+        // Không cho chỉnh trạng thái thủ công từ màn hình sửa.
+        $validated['status'] = $stop->status;
+
         $previousPriorityLevel = $stop->priority_level;
         $scoreNote = $validated['score_note'] ?? null;
-
-        // Ngăn đặt trạng thái "Hoàn thành" khi chưa có điểm mức độ (priority_level)
-        $effectivePriorityLevel = $validated['priority_level'] ?? $stop->priority_level;
-        if ($validated['status'] === 'completed' && $effectivePriorityLevel === null) {
-            return back()->withErrors([
-                'status' => 'Không thể đặt trạng thái "Hoàn thành" khi thẻ STOP chưa được chấm điểm mức độ.'
-            ])->withInput();
-        }
 
         // CHỈ khi priority_level thay đổi → Tự động chuyển trạng thái
         if (isset($validated['priority_level']) && $validated['priority_level'] != $stop->priority_level) {
@@ -293,12 +301,19 @@ class StopController extends Controller
             ], 401);
         }
         
-        if (!$user->isAdmin() && !$user->isApprover() && !$user->isTchcManager()) {
+        if (!$user->isAdmin() && !$user->isApprover() && !$user->isTchcChecker() && !$user->isTchcManager()) {
             \Log::warning('User not authorized', ['user_id' => $user->id, 'role' => $user->role]);
             return response()->json([
                 'success' => false,
                 'message' => 'Bạn không có quyền chấm điểm STOP'
             ], 403);
+        }
+
+        if ($stop->status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'STOP đã hoàn thành, không thể chấm sửa mức độ.'
+            ], 422);
         }
 
         $validated = $request->validate([
@@ -357,7 +372,7 @@ class StopController extends Controller
     {
         // Kiểm tra quyền
         $user = Auth::user();
-        if (!$user || (!$user->isAdmin() && !$user->isApprover() && !$user->isTchcManager())) {
+        if (!$user || (!$user->isAdmin() && !$user->isApprover() && !$user->isTchcChecker() && !$user->isTchcManager())) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bạn không có quyền chấm điểm STOP'
@@ -579,7 +594,7 @@ class StopController extends Controller
 
     private function isScoringActor($user): bool
     {
-        return $user && ($user->isAdmin() || $user->isApprover() || $user->isTchcManager());
+        return $user && ($user->isAdmin() || $user->isApprover() || $user->isTchcChecker() || $user->isTchcManager());
     }
 
     private function requiresSafetyOfficerNote($user, $previousPriorityLevel, $currentPriorityLevel, ?string $scoreNote): bool
@@ -588,5 +603,35 @@ class StopController extends Controller
         $isScoringAction = (string) $previousPriorityLevel !== (string) $currentPriorityLevel;
 
         return $isSafetyOfficer && $isScoringAction && blank($scoreNote);
+    }
+
+    private function resolveEditRestrictionMessage(Stop $stop, $user): ?string
+    {
+        if (!$user) {
+            return 'Bạn cần đăng nhập để chỉnh sửa thẻ STOP.';
+        }
+
+        // Người phê duyệt/TCHC quản lý (bao gồm admin) luôn được chỉnh sửa và chấm điểm theo nghiệp vụ.
+        if ($this->isScoringActor($user)) {
+            return null;
+        }
+
+        if ($stop->isScoredByShiftLeaderOrSafetyOfficer()) {
+            return 'Thẻ STOP đã được Trưởng ca hoặc CBAT chấm mức độ, nhân sự tạo thẻ không thể chỉnh sửa nữa.';
+        }
+
+        if ((int) $stop->user_id !== (int) $user->id) {
+            return 'Bạn chỉ có thể chỉnh sửa thẻ STOP do chính mình tạo.';
+        }
+
+        if ($stop->status === 'completed') {
+            return 'STOP đã hoàn thành, không thể chỉnh sửa!';
+        }
+
+        if (!$stop->canBeEditedByCreator($user->id, 1)) {
+            return 'Bạn chỉ được chỉnh sửa thẻ STOP trong vòng 1 phút kể từ lúc tạo.';
+        }
+
+        return null;
     }
 }

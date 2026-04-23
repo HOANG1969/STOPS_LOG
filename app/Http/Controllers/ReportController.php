@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Stop;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -10,6 +11,30 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ReportController extends Controller
 {
+    private function getShiftPersonnelRoster(string $shift): array
+    {
+        if ($shift === '') {
+            return [];
+        }
+
+        return User::query()
+            ->where('phone', $shift)
+            ->where('is_active', true)
+            ->orderByRaw('COALESCE(NULLIF(full_name, \'\'), name)')
+            ->get(['name', 'full_name'])
+            ->map(function (User $user) {
+                return trim((string) ($user->full_name ?: $user->name));
+            })
+            ->filter(function ($name) {
+                return $name !== '';
+            })
+            ->unique(function ($name) {
+                return mb_strtolower($name);
+            })
+            ->values()
+            ->all();
+    }
+
     private function resolveFilters(Request $request): array
     {
         $shift = $request->input('shift');
@@ -101,6 +126,7 @@ class ReportController extends Controller
         $quarter = $filters['quarter'];
         $issueCategory = $filters['issueCategory'];
         $periodMonths = $filters['periodMonths'];
+        $shiftPersonnelRoster = $this->getShiftPersonnelRoster((string) ($shift ?? ''));
 
         $stops = $this->baseStopQuery($filters)->get();
         $baseExportParams = $this->buildExportParams($filters);
@@ -253,6 +279,54 @@ class ReportController extends Controller
             $priorityStopMap[$priorityKey]['stops'][] = $formatStopRow($stop, $shiftName);
         }
 
+        if (!empty($shift) && !empty($shiftPersonnelRoster)) {
+            foreach ($shiftPersonnelRoster as $observerName) {
+                $personKey = mb_strtolower(trim((string) $observerName)) . '|' . $shift;
+                $personModalKey = md5($personKey);
+
+                if (!isset($personalStats[$personKey])) {
+                    $personalStats[$personKey] = [
+                        'name' => $observerName,
+                        'shift' => $shift,
+                        'modal_key' => $personModalKey,
+                        'months' => $emptyMonths,
+                        'total' => 0,
+                    ];
+                }
+
+                if (!isset($personStopMap[$personModalKey])) {
+                    $personStopMap[$personModalKey] = [
+                        'title' => $observerName . ' - Ca ' . $shift,
+                        'export_url' => route('reports.export-modal', array_merge($baseExportParams, [
+                            'scope' => 'person',
+                            'observer_name' => $observerName,
+                            'observer_shift' => $shift,
+                        ])),
+                        'stops' => [],
+                    ];
+                }
+            }
+        }
+
+        if (!empty($shift) && !isset($shiftStats[$shift])) {
+            $shiftStats[$shift] = [
+                'shift' => $shift,
+                'months' => $emptyMonths,
+                'total' => 0,
+            ];
+        }
+
+        if (!empty($shift) && !isset($shiftStopMap[$shift])) {
+            $shiftStopMap[$shift] = [
+                'title' => 'Ca ' . $shift,
+                'export_url' => route('reports.export-modal', array_merge($baseExportParams, [
+                    'scope' => 'shift',
+                    'observer_shift' => $shift,
+                ])),
+                'stops' => [],
+            ];
+        }
+
         $personalStats = collect(array_values($personalStats))->sortByDesc('total')->values();
         $shiftStats = collect(array_values($shiftStats))->sortByDesc('total')->values();
 
@@ -262,9 +336,15 @@ class ReportController extends Controller
                 'label' => $label,
                 'count' => $stops->where('issue_category', $key)->count(),
             ];
-        })->filter(function ($item) {
-            return $item['count'] > 0;
-        })->sortByDesc('count')->values();
+        });
+
+        if (empty($shift)) {
+            $issueTypeStats = $issueTypeStats->filter(function ($item) {
+                return $item['count'] > 0;
+            });
+        }
+
+        $issueTypeStats = $issueTypeStats->sortByDesc('count')->values();
 
         $selectedIssueShiftStats = collect();
         if ($issueCategory) {

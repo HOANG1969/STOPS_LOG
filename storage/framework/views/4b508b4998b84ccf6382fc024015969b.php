@@ -1,8 +1,8 @@
-@extends('layouts.app')
 
-@section('title', 'Báo cáo STOP')
 
-@push('styles')
+<?php $__env->startSection('title', 'Báo cáo STOP'); ?>
+
+<?php $__env->startPush('styles'); ?>
 <style>
     .report-page-header {
         margin-top: 20px;
@@ -47,16 +47,16 @@
         }
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4 report-page-header">
         <h1 style="font-size: 1.5rem; font-weight: 500; color: #333;">
             <i class="fas fa-chart-bar text-primary me-2"></i>
             Báo cáo STOP
         </h1>
-        <!-- <a href="{{ route('stops.index') }}" class="btn btn-secondary">
+        <!-- <a href="<?php echo e(route('stops.index')); ?>" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-1"></i>Quay lại
         </a> -->
     </div>
@@ -68,40 +68,40 @@
             </h5>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('reports.index') }}" class="row g-3 align-items-end">
+            <form method="GET" action="<?php echo e(route('reports.index')); ?>" class="row g-3 align-items-end">
                 <div class="col-12 col-md-6 col-lg-2">
                     <label class="form-label">Kiểu kỳ báo cáo</label>
                     <select name="period_type" id="period_type" class="form-select">
-                        <option value="month" {{ $periodType === 'month' ? 'selected' : '' }}>Theo tháng</option>
-                        <option value="quarter" {{ $periodType === 'quarter' ? 'selected' : '' }}>Theo quý</option>
+                        <option value="month" <?php echo e($periodType === 'month' ? 'selected' : ''); ?>>Theo tháng</option>
+                        <option value="quarter" <?php echo e($periodType === 'quarter' ? 'selected' : ''); ?>>Theo quý</option>
                     </select>
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-2">
                     <label class="form-label">Năm</label>
                     <select name="year" class="form-select">
-                        @foreach($years as $yearOption)
-                            <option value="{{ $yearOption }}" {{ (int) $year === (int) $yearOption ? 'selected' : '' }}>{{ $yearOption }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $years; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $yearOption): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($yearOption); ?>" <?php echo e((int) $year === (int) $yearOption ? 'selected' : ''); ?>><?php echo e($yearOption); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-2" id="month_filter_wrapper">
                     <label class="form-label">Tháng</label>
                     <select name="month" class="form-select">
-                        @for($m = 1; $m <= 12; $m++)
-                            <option value="{{ $m }}" {{ (int) $month === $m ? 'selected' : '' }}>Tháng {{ $m }}</option>
-                        @endfor
+                        <?php for($m = 1; $m <= 12; $m++): ?>
+                            <option value="<?php echo e($m); ?>" <?php echo e((int) $month === $m ? 'selected' : ''); ?>>Tháng <?php echo e($m); ?></option>
+                        <?php endfor; ?>
                     </select>
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-2" id="quarter_filter_wrapper">
                     <label class="form-label">Quý</label>
                     <select name="quarter" class="form-select">
-                        <option value="1" {{ (int) $quarter === 1 ? 'selected' : '' }}>Quý 1 (1,2,3)</option>
-                        <option value="2" {{ (int) $quarter === 2 ? 'selected' : '' }}>Quý 2 (4,5,6)</option>
-                        <option value="3" {{ (int) $quarter === 3 ? 'selected' : '' }}>Quý 3 (7,8,9)</option>
-                        <option value="4" {{ (int) $quarter === 4 ? 'selected' : '' }}>Quý 4 (10,11,12)</option>
+                        <option value="1" <?php echo e((int) $quarter === 1 ? 'selected' : ''); ?>>Quý 1 (1,2,3)</option>
+                        <option value="2" <?php echo e((int) $quarter === 2 ? 'selected' : ''); ?>>Quý 2 (4,5,6)</option>
+                        <option value="3" <?php echo e((int) $quarter === 3 ? 'selected' : ''); ?>>Quý 3 (7,8,9)</option>
+                        <option value="4" <?php echo e((int) $quarter === 4 ? 'selected' : ''); ?>>Quý 4 (10,11,12)</option>
                     </select>
                 </div>
 
@@ -109,11 +109,11 @@
                     <label class="form-label">Ca/kíp</label>
                     <select name="shift" class="form-select">
                         <option value="">Tất cả</option>
-                        <option value="HTSX" {{ $shift === 'HTSX' ? 'selected' : '' }}>HTSX</option>
-                        <option value="VH01" {{ $shift === 'VH01' ? 'selected' : '' }}>VH01</option>
-                        <option value="VH02" {{ $shift === 'VH02' ? 'selected' : '' }}>VH02</option>
-                        <option value="VH03" {{ $shift === 'VH03' ? 'selected' : '' }}>VH03</option>
-                        <option value="VH04" {{ $shift === 'VH04' ? 'selected' : '' }}>VH04</option>
+                        <option value="HTSX" <?php echo e($shift === 'HTSX' ? 'selected' : ''); ?>>HTSX</option>
+                        <option value="VH01" <?php echo e($shift === 'VH01' ? 'selected' : ''); ?>>VH01</option>
+                        <option value="VH02" <?php echo e($shift === 'VH02' ? 'selected' : ''); ?>>VH02</option>
+                        <option value="VH03" <?php echo e($shift === 'VH03' ? 'selected' : ''); ?>>VH03</option>
+                        <option value="VH04" <?php echo e($shift === 'VH04' ? 'selected' : ''); ?>>VH04</option>
                     </select>
                 </div>
 
@@ -121,9 +121,9 @@
                     <label class="form-label">Loại vấn đề</label>
                     <select name="issue_category" class="form-select">
                         <option value="">Tất cả loại vấn đề</option>
-                        @foreach($issueLabels as $issueKey => $issueLabel)
-                            <option value="{{ $issueKey }}" {{ $issueCategory === $issueKey ? 'selected' : '' }}>{{ $issueLabel }}</option>
-                        @endforeach
+                        <?php $__currentLoopData = $issueLabels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $issueKey => $issueLabel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($issueKey); ?>" <?php echo e($issueCategory === $issueKey ? 'selected' : ''); ?>><?php echo e($issueLabel); ?></option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
 
@@ -134,7 +134,7 @@
                 </div>
             </form>
             <div class="mt-3 text-muted">
-                <small><i class="fas fa-calendar-alt me-1"></i>Kỳ đang xem: <strong>{{ $periodLabel }}</strong></small>
+                <small><i class="fas fa-calendar-alt me-1"></i>Kỳ đang xem: <strong><?php echo e($periodLabel); ?></strong></small>
             </div>
         </div>
     </div>
@@ -144,7 +144,7 @@
             <div class="card bg-primary text-white">
                 <div class="card-body">
                     <h6 class="card-title"><i class="fas fa-clipboard-list me-2"></i>Tổng số STOP</h6>
-                    <h2 class="mb-0">{{ $totalStats['total_stops'] }}</h2>
+                    <h2 class="mb-0"><?php echo e($totalStats['total_stops']); ?></h2>
                 </div>
             </div>
         </div>
@@ -152,7 +152,7 @@
             <div class="card bg-danger text-white">
                 <div class="card-body">
                     <h6 class="card-title"><i class="fas fa-exclamation-circle me-2"></i>Chưa xử lý</h6>
-                    <h2 class="mb-0">{{ $totalStats['open'] }}</h2>
+                    <h2 class="mb-0"><?php echo e($totalStats['open']); ?></h2>
                 </div>
             </div>
         </div>
@@ -160,7 +160,7 @@
             <div class="card bg-warning text-white">
                 <div class="card-body">
                     <h6 class="card-title"><i class="fas fa-spinner me-2"></i>Đang xử lý</h6>
-                    <h2 class="mb-0">{{ $totalStats['in_progress'] }}</h2>
+                    <h2 class="mb-0"><?php echo e($totalStats['in_progress']); ?></h2>
                 </div>
             </div>
         </div>
@@ -168,7 +168,7 @@
             <div class="card bg-success text-white">
                 <div class="card-body">
                     <h6 class="card-title"><i class="fas fa-check-circle me-2"></i>Hoàn thành</h6>
-                    <h2 class="mb-0">{{ $totalStats['completed'] }}</h2>
+                    <h2 class="mb-0"><?php echo e($totalStats['completed']); ?></h2>
                 </div>
             </div>
         </div>
@@ -201,13 +201,13 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-user-check me-2"></i>Thống kê số lượng STOP theo cá nhân trong kỳ</h5>
-                <a href="{{ $exportAllPersonalUrl }}" class="btn btn-sm btn-success" target="_blank" rel="noopener">
+                <a href="<?php echo e($exportAllPersonalUrl); ?>" class="btn btn-sm btn-success" target="_blank" rel="noopener">
                     <i class="fas fa-file-excel me-1"></i>Export Excel
                 </a>
             </div>
         </div>
         <div class="card-body">
-            @if($personalStats->count() > 0)
+            <?php if($personalStats->count() > 0): ?>
                 <div class="table-responsive personal-stats-scroll">
                     <table class="table table-hover table-bordered report-table">
                         <thead class="table-light">
@@ -215,36 +215,37 @@
                                 <th width="5%">#</th>
                                 <th>Họ tên</th>
                                 <th>Ca/kíp</th>
-                                @foreach($monthColumns as $monthColumn)
-                                    <th class="text-center">{{ $monthColumn['label'] }}</th>
-                                @endforeach
+                                <?php $__currentLoopData = $monthColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $monthColumn): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <th class="text-center"><?php echo e($monthColumn['label']); ?></th>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 <th class="text-center">Tổng</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($personalStats as $index => $person)
+                            <?php $__currentLoopData = $personalStats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $person): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td>{{ $index + 1 }}</td>
+                                    <td><?php echo e($index + 1); ?></td>
                                     <td>
-                                        <button type="button" class="report-link-button js-open-person-modal" data-person-key="{{ $person['modal_key'] }}">
-                                            {{ $person['name'] }}
+                                        <button type="button" class="report-link-button js-open-person-modal" data-person-key="<?php echo e($person['modal_key']); ?>">
+                                            <?php echo e($person['name']); ?>
+
                                         </button>
                                     </td>
-                                    <td>{{ $person['shift'] }}</td>
-                                    @foreach($monthColumns as $monthColumn)
-                                        <td class="text-center">{{ $person['months'][$monthColumn['key']] ?? 0 }}</td>
-                                    @endforeach
-                                    <td class="text-center"><strong>{{ $person['total'] }}</strong></td>
+                                    <td><?php echo e($person['shift']); ?></td>
+                                    <?php $__currentLoopData = $monthColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $monthColumn): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <td class="text-center"><?php echo e($person['months'][$monthColumn['key']] ?? 0); ?></td>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <td class="text-center"><strong><?php echo e($person['total']); ?></strong></td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center text-muted py-4">
                     Không có dữ liệu cá nhân trong kỳ đã chọn.
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 
@@ -252,48 +253,49 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-building me-2"></i>Thống kê số lượng STOP theo ca/kíp trong kỳ</h5>
-                <a href="{{ $exportAllShiftUrl }}" class="btn btn-sm btn-success" target="_blank" rel="noopener">
+                <a href="<?php echo e($exportAllShiftUrl); ?>" class="btn btn-sm btn-success" target="_blank" rel="noopener">
                     <i class="fas fa-file-excel me-1"></i>Export Excel
                 </a>
             </div>
         </div>
         <div class="card-body">
-            @if($shiftStats->count() > 0)
+            <?php if($shiftStats->count() > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered report-table">
                         <thead class="table-light">
                             <tr>
                                 <th width="5%">#</th>
                                 <th>Ca/kíp</th>
-                                @foreach($monthColumns as $monthColumn)
-                                    <th class="text-center">{{ $monthColumn['label'] }}</th>
-                                @endforeach
+                                <?php $__currentLoopData = $monthColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $monthColumn): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <th class="text-center"><?php echo e($monthColumn['label']); ?></th>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 <th class="text-center">Tổng</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($shiftStats as $index => $shiftRow)
+                            <?php $__currentLoopData = $shiftStats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $shiftRow): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td>{{ $index + 1 }}</td>
+                                    <td><?php echo e($index + 1); ?></td>
                                     <td>
-                                        <button type="button" class="report-link-button js-open-shift-modal" data-shift-key="{{ $shiftRow['shift'] }}">
-                                            {{ $shiftRow['shift'] }}
+                                        <button type="button" class="report-link-button js-open-shift-modal" data-shift-key="<?php echo e($shiftRow['shift']); ?>">
+                                            <?php echo e($shiftRow['shift']); ?>
+
                                         </button>
                                     </td>
-                                    @foreach($monthColumns as $monthColumn)
-                                        <td class="text-center">{{ $shiftRow['months'][$monthColumn['key']] ?? 0 }}</td>
-                                    @endforeach
-                                    <td class="text-center"><strong>{{ $shiftRow['total'] }}</strong></td>
+                                    <?php $__currentLoopData = $monthColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $monthColumn): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <td class="text-center"><?php echo e($shiftRow['months'][$monthColumn['key']] ?? 0); ?></td>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <td class="text-center"><strong><?php echo e($shiftRow['total']); ?></strong></td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center text-muted py-4">
                     Không có dữ liệu ca/kíp trong kỳ đã chọn.
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 
@@ -301,13 +303,13 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Thống kê số lượng STOP theo loại vấn đề</h5>
-                <a href="{{ $exportAllIssueUrl }}" class="btn btn-sm btn-success" target="_blank" rel="noopener">
+                <a href="<?php echo e($exportAllIssueUrl); ?>" class="btn btn-sm btn-success" target="_blank" rel="noopener">
                     <i class="fas fa-file-excel me-1"></i>Export Excel
                 </a>
             </div>
         </div>
         <div class="card-body">
-            @if($issueTypeStats->count() > 0)
+            <?php if($issueTypeStats->count() > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered">
                         <thead class="table-light">
@@ -318,33 +320,34 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($issueTypeStats as $index => $issueType)
+                            <?php $__currentLoopData = $issueTypeStats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $issueType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
-                                    <td>{{ $index + 1 }}</td>
+                                    <td><?php echo e($index + 1); ?></td>
                                     <td>
-                                        <button type="button" class="report-link-button js-open-issue-modal" data-issue-key="{{ $issueType['modal_key'] }}">
-                                            {{ $issueType['label'] }}
+                                        <button type="button" class="report-link-button js-open-issue-modal" data-issue-key="<?php echo e($issueType['modal_key']); ?>">
+                                            <?php echo e($issueType['label']); ?>
+
                                         </button>
                                     </td>
-                                    <td class="text-center"><strong>{{ $issueType['count'] }}</strong></td>
+                                    <td class="text-center"><strong><?php echo e($issueType['count']); ?></strong></td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center text-muted py-4">
                     Không có dữ liệu loại vấn đề trong kỳ đã chọn.
                 </div>
-            @endif
+            <?php endif; ?>
 
-            @if($issueCategory)
+            <?php if($issueCategory): ?>
                 <hr>
                 <h6>
                     Danh sách theo ca/kíp cho loại vấn đề:
-                    <span class="badge bg-info">{{ $issueLabels[$issueCategory] ?? $issueCategory }}</span>
+                    <span class="badge bg-info"><?php echo e($issueLabels[$issueCategory] ?? $issueCategory); ?></span>
                 </h6>
-                @if($selectedIssueShiftStats->count() > 0)
+                <?php if($selectedIssueShiftStats->count() > 0): ?>
                     <div class="table-responsive mt-3">
                         <table class="table table-striped table-bordered">
                             <thead class="table-light">
@@ -355,20 +358,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($selectedIssueShiftStats as $index => $row)
+                                <?php $__currentLoopData = $selectedIssueShiftStats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <tr>
-                                        <td>{{ $index + 1 }}</td>
-                                        <td>{{ $row['shift'] }}</td>
-                                        <td class="text-center"><strong>{{ $row['count'] }}</strong></td>
+                                        <td><?php echo e($index + 1); ?></td>
+                                        <td><?php echo e($row['shift']); ?></td>
+                                        <td class="text-center"><strong><?php echo e($row['count']); ?></strong></td>
                                     </tr>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </tbody>
                         </table>
                     </div>
-                @else
+                <?php else: ?>
                     <div class="text-center text-muted py-3">Không có dữ liệu theo ca/kíp cho loại vấn đề đã chọn.</div>
-                @endif
-            @endif
+                <?php endif; ?>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -376,46 +379,46 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="fas fa-signal me-2"></i>Thống kê mức độ thẻ STOP theo tháng/quý</h5>
-                <a href="{{ $exportAllPriorityUrl }}" class="btn btn-sm btn-success" target="_blank" rel="noopener">
+                <a href="<?php echo e($exportAllPriorityUrl); ?>" class="btn btn-sm btn-success" target="_blank" rel="noopener">
                     <i class="fas fa-file-excel me-1"></i>Report tất cả
                 </a>
             </div>
         </div>
         <div class="card-body">
-            @if($priorityPeriodStats->count() > 0)
+            <?php if($priorityPeriodStats->count() > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-hover table-bordered report-table">
                         <thead class="table-light">
                             <tr>
                                 <th>Mức độ</th>
-                                @foreach($monthColumns as $monthColumn)
-                                    <th class="text-center">{{ $monthColumn['label'] }}</th>
-                                @endforeach
+                                <?php $__currentLoopData = $monthColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $monthColumn): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <th class="text-center"><?php echo e($monthColumn['label']); ?></th>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 <th class="text-center">Tổng</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($priorityPeriodStats as $row)
+                            <?php $__currentLoopData = $priorityPeriodStats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $row): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <tr>
                                     <td>
-                                        <button type="button" class="report-link-button js-open-priority-modal" data-priority-key="{{ $row['modal_key'] }}">
-                                            <strong>{{ $row['label'] }}</strong>
+                                        <button type="button" class="report-link-button js-open-priority-modal" data-priority-key="<?php echo e($row['modal_key']); ?>">
+                                            <strong><?php echo e($row['label']); ?></strong>
                                         </button>
                                     </td>
-                                    @foreach($monthColumns as $monthColumn)
-                                        <td class="text-center">{{ $row['months'][$monthColumn['key']] ?? 0 }}</td>
-                                    @endforeach
-                                    <td class="text-center"><strong>{{ $row['total'] }}</strong></td>
+                                    <?php $__currentLoopData = $monthColumns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $monthColumn): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <td class="text-center"><?php echo e($row['months'][$monthColumn['key']] ?? 0); ?></td>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <td class="text-center"><strong><?php echo e($row['total']); ?></strong></td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </tbody>
                     </table>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center text-muted py-4">
                     Không có dữ liệu mức độ trong kỳ đã chọn.
                 </div>
-            @endif
+            <?php endif; ?>
         </div>
     </div>
 
@@ -458,7 +461,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 (function () {
@@ -476,19 +479,20 @@
     periodTypeElement.addEventListener('change', togglePeriodInputs);
 
     const priorityData = {
-        level0: {{ $priorityStats['level_0'] }},
-        level1: {{ $priorityStats['level_1'] }},
-        level2: {{ $priorityStats['level_2'] }},
-        level3: {{ $priorityStats['level_3'] }},
-        unscored: {{ $priorityStats['unscored'] }}
+        level0: <?php echo e($priorityStats['level_0']); ?>,
+        level1: <?php echo e($priorityStats['level_1']); ?>,
+        level2: <?php echo e($priorityStats['level_2']); ?>,
+        level3: <?php echo e($priorityStats['level_3']); ?>,
+        unscored: <?php echo e($priorityStats['unscored']); ?>
+
     };
 
-    const issueLabels = @json($issueTypeStats->pluck('label')->values());
-    const issueCounts = @json($issueTypeStats->pluck('count')->values());
-    const personStopMap = @json($personStopMap);
-    const shiftStopMap = @json($shiftStopMap);
-    const issueStopMap = @json($issueStopMap);
-    const priorityStopMap = @json($priorityStopMap);
+    const issueLabels = <?php echo json_encode($issueTypeStats->pluck('label')->values(), 15, 512) ?>;
+    const issueCounts = <?php echo json_encode($issueTypeStats->pluck('count')->values(), 15, 512) ?>;
+    const personStopMap = <?php echo json_encode($personStopMap, 15, 512) ?>;
+    const shiftStopMap = <?php echo json_encode($shiftStopMap, 15, 512) ?>;
+    const issueStopMap = <?php echo json_encode($issueStopMap, 15, 512) ?>;
+    const priorityStopMap = <?php echo json_encode($priorityStopMap, 15, 512) ?>;
 
     const priorityCanvas = document.getElementById('priorityChart');
     if (priorityCanvas) {
@@ -627,5 +631,7 @@
     });
 })();
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\KDNVPP-new\KDNVPP-new\resources\views/stops/report.blade.php ENDPATH**/ ?>

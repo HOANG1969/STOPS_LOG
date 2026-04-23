@@ -53,6 +53,11 @@ class UserManagementController extends Controller
             $query->where('role', $request->role);
         }
 
+        // Filter by ca/kip (phone field)
+        if ($request->filled('phone')) {
+            $query->where('phone', $request->phone);
+        }
+
         // Filter by status
         if ($request->filled('status')) {
             $query->where('is_active', $request->status == 'active' ? 1 : 0);
@@ -197,7 +202,8 @@ class UserManagementController extends Controller
             'role' => 'required|in:admin,approver,employee,tchc_checker,tchc_manager',
             'department' => 'nullable|string|max:255',
             'position' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
+            'phone'=> 'required|in:VH01,VH02,VH03,VH04,VH05,HTSX',
+            // 'phone' => 'nullable|string|max:20',
         ]);
 
         if ($validator->fails()) {

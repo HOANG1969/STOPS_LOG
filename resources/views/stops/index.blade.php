@@ -32,6 +32,16 @@
             font-size: 0.85rem;
         }
     }
+    .card-info .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom: 1px solid #e3e6f0;
+    }
+    .card-header{
+    background: linear-gradient(135deg, #9ba19a 0%, #ecebee 100%);
+    color: white;
+    border-bottom: 1px solid #e3e6f0;
+    }
 </style>
 @endpush
 
@@ -56,7 +66,10 @@
     @endif
 
     <!-- Bộ lọc -->
-    <div class="card mb-4">
+    <div class="card mb-4 card-info" >
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin</h5>
+        </div>
         <div class="card-body">
             <form method="GET" action="{{ route('stops.index') }}" class="row g-3">
                 <div class="col-12 col-md-6 col-lg-3 col-xl-2">
@@ -126,7 +139,7 @@
         </div>
         <div class="card-body">
             <!-- Thanh công cụ chấm điểm hàng loạt -->
-            @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcManager())
+            @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcChecker() || Auth::user()->isTchcManager())
             <div class="alert alert-info d-none" id="bulkActionToolbar">
                 <div class="row align-items-center">
                     <div class="col-md-6">
@@ -158,7 +171,7 @@
                 <table class="table table-hover table-bordered stop-table">
                     <thead class="table-light">
                         <tr>
-                            @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcManager())
+                            @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcChecker() || Auth::user()->isTchcManager())
                             <th width="2%">
                                 <input type="checkbox" id="selectAll" class="form-check-input" title="Chọn tất cả">
                             </th>
@@ -173,7 +186,7 @@
                             <th width="5%">Thiết bị</th>
                             <th width="20%">Nội dung</th>
                             <th width="20%">Đề xuất hành động</th>
-                            <th width="5%">Mức độ</th>
+                            <th width="9%" class="text-center">Mức độ</th>
                             <th width="10%">Trạng thái</th>
                             <th width="6%">Thao tác</th>
                         </tr>
@@ -181,7 +194,7 @@
                     <tbody>
                         @forelse($stops as $index => $stop)
                         <tr>
-                            @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcManager())
+                            @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcChecker() || Auth::user()->isTchcManager())
                             <td>
                                 @if($stop->status !== 'completed')
                                 <input type="checkbox" class="form-check-input stop-checkbox" value="{{ $stop->id }}" data-stop-id="{{ $stop->id }}">
@@ -207,26 +220,30 @@
                             <td>
                                 <small>{{ Str::words($stop->corrective_action, 10, '...') }}</small>
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <!-- Badge hiển thị mức độ (tất cả đều thấy) -->
-                                    @if($stop->priority_level !== null)
+                            <td class="text-center align-middle">
+                                <div class="d-flex align-items-center justify-content-center gap-2">
+                                    @php
+                                        $canInlineScore = (Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcChecker() || Auth::user()->isTchcManager())
+                                            && $stop->status !== 'completed';
+                                    @endphp
+
+                                    @if($canInlineScore && $stop->priority_level === null)
+                                        <select class="form-select form-select-sm priority-inline-select"
+                                                data-stop-id="{{ $stop->id }}"
+                                            style="min-width: 110px; max-width: 120px;">
+                                            <option value="" {{ $stop->priority_level === null ? 'selected' : '' }}>Chưa chấm</option>
+                                            <option value="0" {{ (string)$stop->priority_level === '0' ? 'selected' : '' }}>Mức 0</option>
+                                            <option value="1" {{ (string)$stop->priority_level === '1' ? 'selected' : '' }}>Mức 1</option>
+                                            <option value="2" {{ (string)$stop->priority_level === '2' ? 'selected' : '' }}>Mức 2</option>
+                                            <option value="3" {{ (string)$stop->priority_level === '3' ? 'selected' : '' }}>Mức 3</option>
+                                        </select>
+                                    @elseif($stop->priority_level !== null)
                                         <span class="badge {{ $stop->getPriorityBadgeClass() }}">
                                             {{ $stop->getPriorityLabel() }}
                                         </span>
                                     @else
                                         <span class="badge bg-secondary">Chưa chấm</span>
                                     @endif
-                                   
-                                    <!-- Nút edit cho trưởng ca/admin
-                                    @if(Auth::user()->isAdmin() || Auth::user()->isApprover())
-                                        <button type="button" class="btn btn-sm btn-outline-primary btn-edit-priority" 
-                                                data-stop-id="{{ $stop->id }}"
-                                                data-current-priority="{{ $stop->priority_level ?? '' }}"
-                                                title="Chấm điểm">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                    @endif  -->
                                 </div>
                             </td>
                             <td>
@@ -236,10 +253,25 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
+                                    @php
+                                        $isPrivilegedUser = Auth::user()->isApprover() || Auth::user()->isTchcManager();
+                                        $canEditOwnStop = $stop->canBeEditedByCreator(Auth::id(), 1);
+                                        $isScoredByReviewer = $stop->isScoredByShiftLeaderOrSafetyOfficer();
+                                        $canEditStop = $stop->status !== 'completed' && (
+                                            $isPrivilegedUser || ($canEditOwnStop && !$isScoredByReviewer)
+                                        );
+                                    @endphp
+
                                     @if(Auth::user()->isEmployee())
                                     <a href="{{ route('stops.show', $stop) }}" class="btn btn-sm btn-info" title="Xem chi tiết">
                                         <i class="fas fa-eye"></i>
                                     </a>
+                                    @endif
+
+                                    @if($canEditStop)
+                                        <a href="{{ route('stops.edit', $stop) }}" class="btn btn-sm btn-warning" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                     @endif
                                     
                                     @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTCHCManager())
@@ -249,10 +281,7 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         @else
-                                            <!-- STOP chưa hoàn thành - Có thể sửa/xóa -->
-                                            <a href="{{ route('stops.edit', $stop) }}" class="btn btn-sm btn-warning" title="Sửa">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
+                                            <!-- STOP chưa hoàn thành -->
                                             <form action="{{ route('stops.destroy', $stop) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa?')">
                                                 @csrf
                                                 @method('DELETE')
@@ -285,13 +314,13 @@
     </div>
 </div>
 
-<!-- Modal chấm điểm mức độ quan trọng -->
+<!-- Modal xác nhận chấm mức độ quan trọng -->
 <div class="modal fade" id="priorityModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-star me-2"></i>Chấm mức độ quan trọng
+                    <i class="fas fa-star me-2"></i>Xác nhận chấm mức độ
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -307,8 +336,8 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Ghi chú chấm điểm:</label>
-                    <textarea id="priorityScoreNote" class="form-control" rows="3" placeholder="Nhập ghi chú cho lần chấm điểm này"></textarea>
+                    <label class="form-label">Ghi chú chấm điểm (không bắt buộc):</label>
+                    <textarea id="priorityScoreNote" class="form-control" rows="3" placeholder="Có thể để trống hoặc nhập ghi chú cho lịch sử chấm điểm"></textarea>
                 </div>
                 <input type="hidden" id="currentStopId">
             </div>
@@ -317,7 +346,7 @@
                     <i class="fas fa-times me-1"></i>Hủy
                 </button>
                 <button type="button" class="btn btn-primary" id="btnSavePriority">
-                    <i class="fas fa-save me-1"></i>Lưu
+                    <i class="fas fa-check me-1"></i>OK
                 </button>
             </div>
         </div>
@@ -335,8 +364,10 @@ document.querySelector('select[name="shift"]').addEventListener('change', functi
 });
 
 // Khởi tạo modal
-const priorityModal = new bootstrap.Modal(document.getElementById('priorityModal'));
+const priorityModalElement = document.getElementById('priorityModal');
+const priorityModal = new bootstrap.Modal(priorityModalElement);
 let currentStopId = null;
+let inlinePendingSelect = null;
 
 // Bắt sự kiện click nút Edit mức độ
 document.querySelectorAll('.btn-edit-priority').forEach(function(btn) {
@@ -353,11 +384,39 @@ document.querySelectorAll('.btn-edit-priority').forEach(function(btn) {
     });
 });
 
+// Chấm mức độ trực tiếp bằng dropdown (Trưởng ca/CBAT/Admin)
+document.querySelectorAll('.priority-inline-select').forEach(function(select) {
+    select.addEventListener('change', function() {
+        const stopId = this.dataset.stopId;
+        const priorityLevel = this.value;
+        const originalValue = this.dataset.originalValue ?? '';
+
+        inlinePendingSelect = this;
+        this.dataset.originalValue = originalValue;
+
+        currentStopId = stopId;
+        document.getElementById('currentStopId').value = stopId;
+        document.getElementById('priorityLevelSelect').value = priorityLevel;
+        document.getElementById('priorityScoreNote').value = '';
+
+        priorityModal.show();
+    });
+
+    select.dataset.originalValue = select.value;
+});
+
+priorityModalElement.addEventListener('hidden.bs.modal', function() {
+    if (inlinePendingSelect) {
+        inlinePendingSelect.value = inlinePendingSelect.dataset.originalValue ?? '';
+        inlinePendingSelect = null;
+    }
+});
+
 // Bắt sự kiện click nút Lưu trong modal
 document.getElementById('btnSavePriority').addEventListener('click', function() {
     const stopId = document.getElementById('currentStopId').value;
     const priorityLevel = document.getElementById('priorityLevelSelect').value;
-    const scoreNote = document.getElementById('priorityScoreNote').value;
+    const scoreNote = document.getElementById('priorityScoreNote').value.trim();
     const btnSave = this;
     
     console.log('=== Saving Priority ===');
@@ -367,6 +426,10 @@ document.getElementById('btnSavePriority').addEventListener('click', function() 
     // Disable button while processing
     btnSave.disabled = true;
     btnSave.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang lưu...';
+
+    if (inlinePendingSelect) {
+        inlinePendingSelect.disabled = true;
+    }
     
     fetch(`/stops/${stopId}/priority`, {
         method: 'PATCH',
@@ -390,20 +453,30 @@ document.getElementById('btnSavePriority').addEventListener('click', function() 
     .then(data => {
         console.log('Response data:', data);
         if (data.success) {
+                if (inlinePendingSelect) {
+                    inlinePendingSelect.dataset.originalValue = priorityLevel;
+                }
+
             // Đóng modal và reload trang
             priorityModal.hide();
             window.location.reload();
         } else {
             alert('Lỗi: ' + data.message);
             btnSave.disabled = false;
-            btnSave.innerHTML = '<i class="fas fa-save me-1"></i>Lưu';
+                btnSave.innerHTML = '<i class="fas fa-check me-1"></i>OK';
+                if (inlinePendingSelect) {
+                    inlinePendingSelect.disabled = false;
+                }
         }
     })
     .catch(error => {
         console.error('Error:', error);
         alert('Có lỗi xảy ra: ' + error.message);
         btnSave.disabled = false;
-        btnSave.innerHTML = '<i class="fas fa-save me-1"></i>Lưu';
+        btnSave.innerHTML = '<i class="fas fa-check me-1"></i>OK';
+        if (inlinePendingSelect) {
+            inlinePendingSelect.disabled = false;
+        }
     });
 });
 

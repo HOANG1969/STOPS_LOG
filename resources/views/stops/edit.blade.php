@@ -39,6 +39,10 @@
                     </h5>
                 </div>
                 <div class="card-body">
+                    @php
+                        $canScoreStop = Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcManager();
+                    @endphp
+
                     <form action="{{ route('stops.update', $stop) }}" method="POST">
                         @csrf
                         @method('PUT')
@@ -69,8 +73,9 @@
                          <div class="row mb-3">
                             <div class="col-md-6">
                                 <label for="priority_level" class="form-label">
-                                    <strong>Mức độ STOP</strong> <span class="text-danger">*</span>
+                                    <strong>Mức độ STOP</strong>
                                 </label>
+                                    @if($canScoreStop)
                                     <select class="form-select @error('priority_level') is-invalid @enderror" 
                                             id="priority_level" 
                                             name="priority_level">
@@ -80,6 +85,13 @@
                                         <option value="2" {{ old('priority_level', $stop->priority_level) == '2' ? 'selected' : '' }}>Mức 2: Nguy hiểm trung bình, cần theo dõi</option>
                                         <option value="3" {{ old('priority_level', $stop->priority_level) == '3' ? 'selected' : '' }}>Mức 3: Nguy hiểm thấp, cần cải thiện</option>
                                     </select>
+                                    @else
+                                    <input type="text" class="form-control" value="{{ $stop->priority_level !== null ? $stop->getPriorityLabel() : 'Chưa chấm' }}" readonly>
+                                    <small class="text-muted">Bạn chỉ có quyền chỉnh nội dung, không được thay đổi mức độ chấm điểm.</small>
+                                    @endif
+                                    @error('priority_level')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                             </div>
                             <!-- <div class="col-md-6">
                                 <label for="notes" class="form-label">
@@ -95,7 +107,7 @@
                                 
                             </div> -->
 
-                            @if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcManager())
+                            @if($canScoreStop)
                             <div class="col-md-6">
                                 <label for="score_note" class="form-label">
                                     <strong>Ghi chú:</strong>
@@ -248,20 +260,11 @@
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="status" class="form-label">
-                                    <strong>Trạng thái</strong> <span class="text-danger">*</span>
+                                <label class="form-label">
+                                    <strong>Trạng thái</strong>
                                 </label>
-                                <select class="form-select @error('status') is-invalid @enderror" 
-                                        id="status" 
-                                        name="status" 
-                                        required>
-                                    <option value="open" {{ old('status', $stop->status) == 'open' ? 'selected' : '' }}>Chưa xử lý</option>
-                                    <option value="in-progress" {{ old('status', $stop->status) == 'in-progress' ? 'selected' : '' }}>Đang xử lý</option>
-                                    <option value="completed" {{ old('status', $stop->status) == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
-                                </select>
-                                @error('status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <input type="text" class="form-control" value="{{ $stop->getStatusLabel() }}" readonly>
+                                <small class="text-muted">Trạng thái chỉ hiển thị, hệ thống tự cập nhật theo quy trình chấm điểm.</small>
                             </div>
 
                             <div class="col-md-6">
