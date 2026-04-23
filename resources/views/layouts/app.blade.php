@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/png" href="{{ asset('images/logopvgas.png') }}?v=3">
     <link rel="shortcut icon" type="image/png" href="{{ asset('images/logopvgas.png') }}?v=3">
-    <title>@yield('title', 'Office Supplies Management')</title>
+    <title>@yield('title', '')</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>

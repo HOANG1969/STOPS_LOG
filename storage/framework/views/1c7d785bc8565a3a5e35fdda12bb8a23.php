@@ -32,6 +32,80 @@
             font-size: 0.85rem;
         }
     }
+
+    @media (max-width: 767.98px) {
+        .table-responsive {
+            overflow-x: visible;
+        }
+
+        .stop-table {
+            min-width: 100%;
+            border: 0;
+            font-size: 0.9rem;
+        }
+
+        .stop-table thead {
+            display: none;
+        }
+
+        .stop-table tbody,
+        .stop-table tr,
+        .stop-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .stop-table tr {
+            border: 1px solid #e3e6f0;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .stop-table td {
+            border: 0;
+            border-bottom: 1px dashed #e9ecef;
+            padding: 0.6rem 0.75rem;
+            text-align: left !important;
+        }
+
+        .stop-table td:last-child {
+            border-bottom: 0;
+        }
+
+        .stop-table td::before {
+            content: attr(data-label);
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+
+        .stop-table td[data-label="Chọn"]::before {
+            display: none;
+        }
+
+        .stop-table td[data-label="Mức độ"] .d-flex {
+            justify-content: flex-start !important;
+        }
+
+        .stop-table td[data-label="Thao tác"] .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .stop-table .stop-empty-row td {
+            display: table-cell !important;
+            text-align: center !important;
+        }
+
+        .stop-table .stop-empty-row td::before {
+            display: none !important;
+        }
+    }
     .card-info .card-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
@@ -197,33 +271,33 @@
                         <?php $__empty_1 = true; $__currentLoopData = $stops; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $stop): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr>
                             <?php if(Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcChecker() || Auth::user()->isTchcManager()): ?>
-                            <td>
+                            <td data-label="Chọn">
                                 <?php if($stop->status !== 'completed'): ?>
                                 <input type="checkbox" class="form-check-input stop-checkbox" value="<?php echo e($stop->id); ?>" data-stop-id="<?php echo e($stop->id); ?>">
                                 <?php endif; ?>
                             </td>
                             <?php endif; ?>
                             <!-- <td><?php echo e($stops->firstItem() + $index); ?></td> -->
-                            <td>
+                            <td data-label="Thời gian đăng ký">
                                 <?php echo e($stop->created_at->format('d/m/Y')); ?>
 
                                 <br><small class="text-muted"><?php echo e($stop->created_at->format('H:i')); ?></small>
                             </td>
-                            <td><?php echo e($stop->observer_name); ?></td>
+                            <td data-label="Người ghi nhận"><?php echo e($stop->observer_name); ?></td>
                             <!-- <td><?php echo e(explode('@',$stop->user->email)[0]); ?></td> -->
-                            <td><?php echo e($stop->observer_phone); ?></td>
-                            <td>
+                            <td data-label="Ca/kíp"><?php echo e($stop->observer_phone); ?></td>
+                            <td data-label="Loại vấn đề">
                                 <span class="badge bg-info"><?php echo e($stop->getCategoryLabel()); ?></span>
                             </td>
-                            <td><?php echo e(Str::limit($stop->location,10,'...')); ?></td>
-                            <td><?php echo e(Str::limit($stop->equipment_name ?? '-',10,'...')); ?></td>
-                            <td>
+                            <td data-label="Vị trí"><?php echo e(Str::limit($stop->location,10,'...')); ?></td>
+                            <td data-label="Thiết bị"><?php echo e(Str::limit($stop->equipment_name ?? '-',10,'...')); ?></td>
+                            <td data-label="Nội dung">
                                 <small><?php echo e(Str::words($stop->issue_description, 10,'...')); ?></small>
                             </td>
-                            <td>
+                            <td data-label="Đề xuất hành động">
                                 <small><?php echo e(Str::words($stop->corrective_action, 10, '...')); ?></small>
                             </td>
-                            <td class="text-center align-middle">
+                            <td class="text-center align-middle" data-label="Mức độ">
                                 <div class="d-flex align-items-center justify-content-center gap-2">
                                     <?php
                                         $canInlineScore = (Auth::user()->isAdmin() || Auth::user()->isApprover() || Auth::user()->isTchcChecker() || Auth::user()->isTchcManager())
@@ -250,13 +324,13 @@
                                     <?php endif; ?>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="Trạng thái">
                                 <span class="<?php echo e($stop->getStatusBadgeClass()); ?>">
                                     <?php echo e($stop->getStatusLabel()); ?>
 
                                 </span>
                             </td>
-                            <td>
+                            <td data-label="Thao tác">
                                 <div class="btn-group" role="group">
                                     <?php
                                         $isPrivilegedUser = Auth::user()->isApprover() || Auth::user()->isTchcManager();
@@ -300,8 +374,8 @@
                             </td>
                         </tr>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr>
-                            <td colspan="8" class="text-center text-muted">
+                        <tr class="stop-empty-row">
+                            <td colspan="12" class="text-center text-muted">
                                 <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
                                 Chưa có ghi nhận STOP nào
                             </td>
