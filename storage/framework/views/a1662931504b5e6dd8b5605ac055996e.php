@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <link rel="icon" type="image/png" href="<?php echo e(asset('images/logopvgas.png')); ?>?v=3">
     <link rel="shortcut icon" type="image/png" href="<?php echo e(asset('images/logopvgas.png')); ?>?v=3">
-    <title><?php echo $__env->yieldContent('title', 'Office Supplies Management'); ?></title>
+    <title><?php echo $__env->yieldContent('title', ''); ?></title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
